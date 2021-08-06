@@ -1,4 +1,7 @@
 {
     "startBalance": 1000,
-    "risk": 0.2
+    "risk": 0.2,
+    "fees": 0.000665,
+    "leverage": 10,
+    "paperTrading": true
 }

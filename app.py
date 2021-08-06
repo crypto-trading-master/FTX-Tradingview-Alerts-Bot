@@ -15,12 +15,15 @@ private_key = os.getenv("PRIVATE_KEY")
 with open('config.json', 'r') as f:
     config = json.load(f)
 
-startBalance = config['startBalance']
+currBalance = config['startBalance']
 risk = config['risk']
+fees = config['fees']
+leverage = config['leverage']
 
 client = ftx.FtxClient(api_key=api_key, api_secret=api_secret, subaccount_name=subaccount_name)
 
 positions = []  # type: list
+trades = []  # type: list
 
 app = Flask(__name__)
 
@@ -40,13 +43,15 @@ def webhook():
             "status": "Private key error. Not authorized !"
         }
 
-    ticker = data['ticker']
+    ticker = data["ticker"]
     action = data["action"]
 
     result = client.get_market(ticker)
 
-    if positions:
+    bid = result["bid"]
+    ask = result["ask"]
 
+    if positions:
         position = positions[0]
 
         # Check position type
@@ -54,26 +59,49 @@ def webhook():
         positionAction = position["action"]
 
         if positionAction != action:
-
             # Close position
 
+            if positionAction == 'buy':  # Sell
+                price = bid
+            else:  # positionAction == sell -> Buy
+                price = ask
+
+            coinAmount = position["coinAmount"]
+            positionCost = position["positionCost"]
+
+            feesAmount = coinAmount * price * fees
+            closeReturn = coinAmount * price - feesAmount
+
             if positionAction == 'buy':
-                # Sell
-                price = result['bid']
+                profit = closeReturn - positionCost
             else:
-                # Buy
-                price = result['ask']
+                profit = positionCost - closeReturn
+
+            previousBalance = currBalance
+            currBalance += profit
+
+            profitPercent = (currBalance / previousBalance - 1) * leverage * 100
+
+            # #### TO DO  Create trade Dict and add to trades
 
     # Open position
 
     if action == 'buy':
-        price = result['ask']
+        price = ask
     else:
-        price = result['bid']
+        price = bid
 
 
 @ app.route('/status')
 def status():
     return {
-        "currBalance": "10000"
+        "Current balance": currBalance,
+        "Number of trades": len(trades)
+    }
+
+
+@ app.route('/trades')
+def tradeStatus():
+    return {
+        trades
     }
