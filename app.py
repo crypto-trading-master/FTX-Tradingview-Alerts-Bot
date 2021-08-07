@@ -89,6 +89,8 @@ def webhook():
 
             positions.pop(0)
 
+            # TO DO ## trade Dict must be detailed with position prices and balances
+
             trade = {}
             trade["ticker"] = ticker
             trade["datetime"] = datetime.datetime.now()
