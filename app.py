@@ -1,6 +1,7 @@
 import json
 import ftx  # type: ignore
 import os
+import datetime
 from flask import Flask, request
 # from pprint import pprint
 from dotenv import load_dotenv
@@ -36,12 +37,16 @@ def hello_world():
 @ app.route('/webhook', methods=['POST'])
 def webhook():
 
+    global currBalance
+
     data = json.loads(request.data)
 
     if data['key'] != private_key:
         return {
             "status": "Private key error. Not authorized !"
         }
+
+    openPosition = True
 
     ticker = data["ticker"]
     action = data["action"]
@@ -82,26 +87,65 @@ def webhook():
 
             profitPercent = (currBalance / previousBalance - 1) * leverage * 100
 
-            # #### TO DO  Create trade Dict and add to trades
+            positions.pop(0)
+
+            trade = {}
+            trade["ticker"] = ticker
+            trade["datetime"] = datetime.datetime.now()
+            trade["profit"] = profit
+            trade["profitPercent"] = profitPercent
+            trades.append(trade)
+
+        else:
+            openPosition = False
 
     # Open position
 
-    if action == 'buy':
-        price = ask
-    else:
-        price = bid
+    if openPosition:
+
+        if action == 'buy':
+            price = ask
+        else:
+            price = bid
+
+        buyBalance = currBalance * risk
+        feesAmount = buyBalance * leverage * fees
+        coinAmount = (buyBalance * leverage - feesAmount) / price
+        positionCost = buyBalance * leverage
+
+        position = {}
+        position["ticker"] = ticker
+        position["action"] = action
+        position["buyBalance"] = buyBalance
+        position["feesAmount"] = feesAmount
+        position["coinAmount"] = coinAmount
+        position["price"] = price
+        position["positionCost"] = positionCost
+        positions.append(position)
+
+    return {
+        "code": "success"
+    }
 
 
 @ app.route('/status')
 def status():
     return {
         "Current balance": currBalance,
-        "Number of trades": len(trades)
+        "Number of trades": len(trades),
+        "Number of positions": len(positions)
     }
 
 
 @ app.route('/trades')
 def tradeStatus():
     return {
-        trades
+        "trades": trades
+    }
+
+
+@ app.route('/positions')
+def psotionsStatus():
+    return {
+        "positions": positions
     }
