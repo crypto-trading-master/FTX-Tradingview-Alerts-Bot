@@ -74,13 +74,20 @@ def webhook():
             coinAmount = position["coinAmount"]
             positionCost = position["positionCost"]
 
+            trade = {}
+            trade["ticker"] = ticker
+            trade["datetime"] = datetime.datetime.now()
+            trade["action"] = action
+            trade["leverage"] = leverage
+            trade["position"] = position
+
             feesAmount = coinAmount * price * fees
             closeReturn = coinAmount * price - feesAmount
 
-            if positionAction == 'buy':
-                profit = closeReturn - positionCost
-            else:
+            if action == 'buy':
                 profit = positionCost - closeReturn
+            else:
+                profit = closeReturn - positionCost
 
             previousBalance = currBalance
             currBalance += profit
@@ -91,11 +98,14 @@ def webhook():
 
             # TO DO ## trade Dict must be detailed with position prices and balances
 
-            trade = {}
-            trade["ticker"] = ticker
-            trade["datetime"] = datetime.datetime.now()
+            trade["price"] = price
+            trade["previousBalance"] = previousBalance
+            trade["feesAmount"] = feesAmount
+            trade["closeReturn"] = closeReturn
             trade["profit"] = profit
             trade["profitPercent"] = profitPercent
+            trade["currentBalance"] = currBalance
+
             trades.append(trade)
 
         else:
