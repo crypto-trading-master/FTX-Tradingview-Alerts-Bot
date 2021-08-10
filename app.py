@@ -6,6 +6,8 @@ from flask import Flask, request
 # from pprint import pprint
 from dotenv import load_dotenv
 
+app = Flask(__name__)
+
 load_dotenv()
 
 api_key = os.getenv("API_KEY")
@@ -16,6 +18,7 @@ private_key = os.getenv("PRIVATE_KEY")
 with open('config.json', 'r') as f:
     config = json.load(f)
 
+startBalance = config['startBalance']
 currBalance = config['startBalance']
 risk = config['risk']
 fees = config['fees']
@@ -25,19 +28,13 @@ client = ftx.FtxClient(api_key=api_key, api_secret=api_secret, subaccount_name=s
 
 positions = []  # type: list
 trades = []  # type: list
-
-app = Flask(__name__)
-
-
-@ app.route('/')
-def hello_world():
-    return 'Hello, World!'
+alerts = []  # type: list
 
 
 @ app.route('/webhook', methods=['POST'])
 def webhook():
 
-    global currBalance
+    global currBalance, positions, trades, alerts
 
     data = json.loads(request.data)
 
@@ -46,10 +43,16 @@ def webhook():
             "status": "Private key error. Not authorized !"
         }
 
-    openPosition = True
-
     ticker = data["ticker"]
     action = data["action"]
+
+    alert = {}
+    alert["datetime"] = datetime.datetime.now()
+    alert["ticker"] = ticker
+    alert["action"] = action
+    alerts.append(alert)
+
+    openPosition = True
 
     result = client.get_market(ticker)
 
@@ -96,8 +99,6 @@ def webhook():
 
             positions.pop(0)
 
-            # TO DO ## trade Dict must be detailed with position prices and balances
-
             trade["price"] = price
             trade["previousBalance"] = previousBalance
             trade["feesAmount"] = feesAmount
@@ -142,22 +143,43 @@ def webhook():
 
 @ app.route('/status')
 def status():
+
+    global currBalance, startBalance, positions, trades
+
     return {
+        "Start balance": startBalance,
         "Current balance": currBalance,
         "Number of trades": len(trades),
         "Number of positions": len(positions)
+        "Number of alerts": len(alerts)
     }
 
 
 @ app.route('/trades')
 def tradeStatus():
+
+    global trades
+
     return {
         "trades": trades
     }
 
 
 @ app.route('/positions')
-def psotionsStatus():
+def postionsStatus():
+
+    global positions
+
     return {
         "positions": positions
+    }
+
+
+@ app.route('/alerts')
+def alertsStatus():
+
+    global alerts
+
+    return {
+        "alerts": alerts
     }
