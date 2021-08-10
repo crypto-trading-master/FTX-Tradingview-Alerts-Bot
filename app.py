@@ -15,7 +15,11 @@ with app.app_context():
     api_key = os.getenv("API_KEY")
     api_secret = os.getenv("API_SECRET")
     subaccount_name = os.getenv("SUBACCOUNT_NAME")
+<<<<<<< HEAD
     g.private_key = os.getenv("PRIVATE_KEY")
+=======
+    private_key = os.getenv("PRIVATE_KEY")
+>>>>>>> 31f192f677b9b23d0bb0b018443974c8996c39dc
 
     with open('config.json', 'r') as f:
         config = json.load(f)
@@ -32,6 +36,7 @@ with app.app_context():
     g.trades = []  # type: list
     g.alerts = []  # type: list
 
+<<<<<<< HEAD
     print(g.currBalance)
 
 
@@ -113,6 +118,85 @@ with app.app_context():
 
                 g.trades.append(trade)
 
+=======
+
+    @ app.route('/webhook', methods=['POST'])
+    def webhook():
+
+        data = json.loads(request.data)
+
+        if data['key'] != private_key:
+            return {
+                "status": "Private key error. Not authorized !"
+            }
+
+        ticker = data["ticker"]
+        action = data["action"]
+
+        alert = {}
+        alert["datetime"] = datetime.datetime.now()
+        alert["ticker"] = ticker
+        alert["action"] = action
+        g.alerts.append(alert)
+
+        openPosition = True
+
+        result = client.get_market(ticker)
+
+        bid = result["bid"]
+        ask = result["ask"]
+
+        if positions:
+            position = positions[0]
+
+            # Check position type
+
+            positionAction = position["action"]
+
+            if positionAction != action:
+                # Close position
+
+                if positionAction == 'buy':  # Sell
+                    price = bid
+                else:  # positionAction == sell -> Buy
+                    price = ask
+
+                coinAmount = position["coinAmount"]
+                positionCost = position["positionCost"]
+
+                trade = {}
+                trade["ticker"] = ticker
+                trade["datetime"] = datetime.datetime.now()
+                trade["action"] = action
+                trade["leverage"] = leverage
+                trade["position"] = position
+
+                feesAmount = coinAmount * price * fees
+                closeReturn = coinAmount * price - feesAmount
+
+                if action == 'buy':
+                    profit = positionCost - closeReturn
+                else:
+                    profit = closeReturn - positionCost
+
+                previousBalance = g.currBalance
+                g.currBalance += profit
+
+                profitPercent = (g.currBalance / previousBalance - 1) * leverage * 100
+
+                g.positions.pop(0)
+
+                trade["price"] = price
+                trade["previousBalance"] = previousBalance
+                trade["feesAmount"] = feesAmount
+                trade["closeReturn"] = closeReturn
+                trade["profit"] = profit
+                trade["profitPercent"] = profitPercent
+                trade["currentBalance"] = g.currBalance
+
+                g.trades.append(trade)
+
+>>>>>>> 31f192f677b9b23d0bb0b018443974c8996c39dc
             else:
                 openPosition = False
 
