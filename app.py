@@ -144,13 +144,13 @@ def webhook():
 @ app.route('/status')
 def status():
 
-    global currBalance, startBalance, positions, trades
+    global currBalance, startBalance, positions, trades, alerts
 
     return {
         "Start balance": startBalance,
         "Current balance": currBalance,
         "Number of trades": len(trades),
-        "Number of positions": len(positions)
+        "Number of positions": len(positions),
         "Number of alerts": len(alerts)
     }
 
