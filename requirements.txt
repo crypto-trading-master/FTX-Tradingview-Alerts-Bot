@@ -1,5 +1,4 @@
 flask
+flask-sqlalchemy
 gunicorn
-ftx
-ciso8601
 python-dotenv
