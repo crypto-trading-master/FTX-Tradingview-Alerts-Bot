@@ -15,9 +15,9 @@ private_key = os.getenv("PRIVATE_KEY")
 with open('config.json', 'r') as f:
     config = json.load(f)
 
-# startBalance = config['startBalance']
+#  startBalance = config['startBalance']
 
-app.config['SQLALCHEMY_DATABASE_URI'] = config['sqlDatabaseURI']
+app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv("SQLALCHEMY_DATABASE_URI")
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db = SQLAlchemy(app)
