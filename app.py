@@ -5,6 +5,7 @@ from flask import Flask, request
 from flask_sqlalchemy import SQLAlchemy
 # from pprint import pprint
 from dotenv import load_dotenv
+from datetime import datetime
 
 app = Flask(__name__)
 
@@ -22,6 +23,26 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db = SQLAlchemy(app)
 
+class alert(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    ticker = db.Column(db.String(20))
+    interval = db.Column(db.Integer)
+    action = db.Column(db.String(10))
+    chartTime = db.Column(db.DateTime)
+    time = db.Column(db.DateTime)
+    chartPrice = db.Column(db.Numeric)
+    price = db.Column(db.Numeric)
+    
+    def __init__(self, ticker, interval, action, chartTime, time, chartPrice, price):
+        self.ticker = ticker
+        self.interval = interval
+        self.action = action
+        self.chartTime = chartTime
+        self.time = time
+        self.chartPrice = chartPrice
+        self.price = price
+
+
 @ app.route('/webhook', methods=['POST'])
 def webhook():
 
@@ -34,10 +55,16 @@ def webhook():
 
     ticker = data["ticker"]
     action = data["action"]
-    time = data["time"],
+    chartTime = data["time"],
     interval = data["interval"],
     chartPrice = data["price"]
+    
+    time = datetime.now()
+    
+    # TODO Get current price from FTX
 
+    currAlert = alert(ticker, interval, action, chartTime, time, chartPrice, price)
+    
 
     return {
         "code": "success"
