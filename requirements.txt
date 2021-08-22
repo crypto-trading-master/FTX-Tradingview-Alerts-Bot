@@ -2,3 +2,6 @@ flask
 flask-sqlalchemy
 gunicorn
 python-dotenv
+ftx
+ciso8601
+mysqlclient
