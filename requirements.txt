@@ -5,3 +5,4 @@ python-dotenv
 ftx
 ciso8601
 mysqlclient
+python-dateutil

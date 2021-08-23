@@ -7,6 +7,7 @@ from flask_sqlalchemy import SQLAlchemy
 # from pprint import pprint
 from dotenv import load_dotenv
 from datetime import datetime
+from dateutil import parser
 
 app = Flask(__name__)
 
@@ -40,16 +41,6 @@ class Alert(db.Model):
     time = db.Column(db.DateTime)
     chartPrice = db.Column(db.Numeric)
     price = db.Column(db.Numeric)
-    
-    def __init__(self, strategy, ticker, interval, action, chartTime, time, chartPrice, price):
-        self.strategy = strategy
-        self.ticker = ticker
-        self.interval = interval
-        self.action = action
-        self.chartTime = chartTime
-        self.time = time
-        self.chartPrice = chartPrice
-        self.price = price
 
 db.create_all()
 
@@ -65,15 +56,10 @@ def webhook():
 
     strategy = data["strategy"]
     ticker = data["ticker"]
-    action = data["action"]
-    
-    # TODO Convert JSON Datetime to MySQL Datetime
-    
-    chartTime = data["time"],
     interval = data["interval"],
+    action = data["action"]    
+    chartTime = parser.parse(data["time"])
     chartPrice = data["price"]
-    
-    time = datetime.now()
     
     market = client.get_market(ticker)
 
@@ -85,7 +71,16 @@ def webhook():
     else:
         price = bid
     
-    alert = Alert(strategy, ticker, interval, action, chartTime, time, chartPrice, price)
+    time = datetime.now()
+    
+    alert = Alert(  strategy=strategy, 
+                    ticker=ticker, 
+                    interval=interval, 
+                    action=action, 
+                    chartTime=chartTime, 
+                    time=time, 
+                    chartPrice=chartPrice, 
+                    price=price)
     
     db.session.add(alert)
     db.session.commit()
