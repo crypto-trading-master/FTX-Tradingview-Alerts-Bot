@@ -37,8 +37,8 @@ class Alert(db.Model):
     action = db.Column(db.String(10))
     chartTime = db.Column(db.DateTime)
     time = db.Column(db.DateTime)
-    chartPrice = db.Column(db.Numeric)
-    price = db.Column(db.Numeric)
+    chartPrice = db.Column(db.Numeric(20,10))
+    price = db.Column(db.Numeric(20,10))    
 
 db.create_all()
 
