@@ -23,8 +23,6 @@ with open('config.json', 'r') as f:
 
 client = ftx.FtxClient(api_key=api_key, api_secret=api_secret, subaccount_name=subaccount_name)
 
-#  startBalance = config['startBalance']
-
 app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv("SQLALCHEMY_DATABASE_URI")
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
